@@ -1,4 +1,5 @@
 import Chromium from "chrome-aws-lambda";
+import chrome from "@sparticuz/chromium";
 
 function isValidUrl(string) {
     try {
@@ -17,13 +18,15 @@ export default async function handler(req, res) {
       status: 400,
       message: "Invalid parameter `url`. Must be a valid URL"
     })
+
+    chrome.setHeadlessMode = true
   
-    const executable = process.env.NODE_ENV === "production" ? await Chromium.executablePath : process.env.CHROME_PATH
+    const executable = process.env.NODE_ENV === "production" ? chrome.executablePath : process.env.CHROME_PATH
   
     const browser = await Chromium.puppeteer.launch({
       executablePath: executable ?? await Chromium.executablePath, // fallback if env is not set
-      headless: Chromium.headless === undefined ? true : Chromium.headless,
-      args: [...Chromium.args, "--font-render-hinting=none"]
+      headless: chrome.headless,
+      args: [...chrome.args, "--font-render-hinting=none"]
     })
   
     const page = await browser.newPage()
