@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
     chrome.setHeadlessMode = true
   
-    const executable = process.env.NODE_ENV === "production" ? chrome.executablePath : process.env.CHROME_PATH
+    const executable = process.env.NODE_ENV === "production" ? await chrome.executablePath() : process.env.CHROME_PATH
   
     const browser = await Chromium.puppeteer.launch({
       executablePath: executable ?? await Chromium.executablePath, // fallback if env is not set
