@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import Chromium from "chrome-aws-lambda";
 
 function isValidUrl(string) {
     try {
@@ -17,8 +17,10 @@ export default async function handler(req, res) {
     message: "Invalid parameter `url`. Must be a valid URL"
   })
 
-  const browser = await puppeteer.launch({
-    headless: true
+  const executable = process.env.NODE_ENV === "production" ? await Chromium.executablePath : process.env.CHROME_PATH
+
+  const browser = await Chromium.puppeteer.launch({
+    executablePath: executable ?? await Chromium.executablePath // fallback if env is not set
   })
 
   const page = await browser.newPage()
