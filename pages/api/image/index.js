@@ -1,4 +1,4 @@
-import chromium from 'chrome-aws-lambda';
+import puppeteer from "puppeteer";
 
 function isValidUrl(string) {
     try {
@@ -12,27 +12,31 @@ function isValidUrl(string) {
 
 export default async function handler(req, res) {
   let url = req.query.url
-  if(isValidUrl(url) !== true || url.includes("<" || ">" || "<script>" || "</script>") || encodeURIComponent(url).includes("%3C" || "%3E" || "%20")) return res.status(200).setHeader('Content-Type', 'application/json').send(JSON.stringify({error: "provide valid url", example: "/image?url=https://google.com"}, null, 4));
-  const browser = await chromium.puppeteer.launch({
-    executablePath: await chromium.executablePath,
-    args: chromium.args,
-    headless: chromium.headless,
-    defaultViewport: null
-  });
+  if(!isValidUrl(url)) return res.status(400).json({
+    status: 400,
+    message: "Invalid parameter `url`. Must be a valid URL"
+  })
 
-  const page = await browser.newPage();
-  await page.goto(url, {waitUntil: [
-    'domcontentloaded', 'load'
-  ]});
-  const image = await page.screenshot({
-    type: 'png'
-  });
+  const browser = await puppeteer.launch({
+    headless: true
+  })
 
-  await browser.close();
+  const page = await browser.newPage()
 
-  var img = await Buffer.from(image, 'base64');
+  await page.setViewport({ width: 1280, height: 720 })
 
-  res.status(200)
-    res.setHeader('Content-Type', 'image/png')
-res.send(img);
+  await page.goto(url, {
+    waitUntil: "networkidle0"
+  })
+
+  const shoot = await page.screenshot({
+    type: "png"
+  })
+
+  res.setHeader("Content-Type", "image/png")
+
+  res.send(Buffer.from(shoot))
+
+  // clean up
+  browser.close()
 }
