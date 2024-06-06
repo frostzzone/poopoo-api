@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.29",
-    "@sparticuz/chromium": "^123.0.1",
     "@vercel/analytics": "^0.1.5",
     "chrome-aws-lambda": "^10.1.0",
     "jimp": "^0.16.0",
