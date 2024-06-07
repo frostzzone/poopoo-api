@@ -1,4 +1,5 @@
 import Chromium from "chrome-aws-lambda";
+import puppeteer from 'puppeteer-core';
 
 function isValidUrl(string) {
     try {
@@ -17,15 +18,24 @@ export default async function handler(req, res) {
       status: 400,
       message: "Invalid parameter `url`. Must be a valid URL"
     })
+
+    const options = process.env.AWS_REGION
+    ? {
+        args: Chromium.args,
+        executablePath: await Chromium.executablePath,
+        headless: Chromium.headless
+      }
+    : {
+      args: [],
+      executablePath:
+        process.platform === 'win32'
+          ? 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+          : process.platform === 'linux'
+          ? '/usr/bin/google-chrome'
+          : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+    };
   
-    const executable = process.env.NODE_ENV === "production" ? await Chromium.executablePath : process.env.CHROME_PATH
-  
-    const browser = await Chromium.puppeteer.launch({
-      executablePath: executable ?? await Chromium.executablePath, // fallback if env is not set
-      headless: true,
-      args: [...Chromium.args, "--font-render-hinting=none", '--hide-scrollbars', '--disable-web-security'],
-      defaultViewport: Chromium.defaultViewport
-    })
+    const browser = await puppeteer.launch(options)
   
     const page = await browser.newPage()
   
